@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+#define kCountryName        @"name"
+#define kCountryCallingCode @"country"
+
 @interface ALLocationListDataSource : NSObject
+
+- (NSArray *)locations;
+
 
 @end

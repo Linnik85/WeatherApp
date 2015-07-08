@@ -10,4 +10,10 @@
 
 @interface ALSettingsTableViewController : UITableViewController
 
+@property (weak, nonatomic) IBOutlet UILabel *locationName;
+
+@property (weak, nonatomic) IBOutlet UISwitch *temparaturSwithOutlet;
+
+- (IBAction)temperaturAction:(id)sender;
+
 @end

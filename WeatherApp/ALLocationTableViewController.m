@@ -7,94 +7,203 @@
 //
 
 #import "ALLocationTableViewController.h"
+#import "ALLocationListDataSource.h"
+#import "ALLocationTableViewCell.h"
 
-@interface ALLocationTableViewController ()
+@interface ALLocationTableViewController () <UISearchBarDelegate>
+
+@property (strong, nonatomic) NSMutableArray *dataRows;
+
+@property (strong, nonatomic) NSMutableArray* filterTempArray;
+
+@property (strong, nonatomic) NSOperation* currenTOperation;
+
+@property (assign, nonatomic) BOOL isSectionLocation;
 
 @end
 
+
 @implementation ALLocationTableViewController
 
+#pragma mark - Lifecycle
+
 - (void)viewDidLoad {
+    
     [super viewDidLoad];
     
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
+    [self settingNavigationBar];
     
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.searchBar.delegate = self;
+
+    self.filterTempArray = [NSMutableArray new];
+    
+    ALLocationListDataSource *dataSource = [[ALLocationListDataSource alloc] init];
+    
+    _dataRows = [[dataSource locations] mutableCopy];
+    
+    NSSortDescriptor* sortDescriptorName =[[NSSortDescriptor alloc]initWithKey:@"country" ascending:YES];
+    
+    [self.dataRows sortUsingDescriptors:@[sortDescriptorName]];
+    
+    [self filterArrayInBackground:self.dataRows withFilter:nil];
+
+
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+
+#pragma mark UISearchBarDelegate
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar{
+    
+    [searchBar setShowsCancelButton:YES animated:YES];
 }
 
-#pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-#warning Potentially incomplete method implementation.
-    // Return the number of sections.
-    return 0;
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar{
+    
+    searchBar.text = nil;
+    [searchBar resignFirstResponder];
+    [searchBar setShowsCancelButton:NO animated:YES];
+    
+    [self filterArrayInBackground:self.dataRows withFilter:searchBar.text];
+    
 }
+
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText{
+    
+    
+    [self filterArrayInBackground:self.dataRows withFilter:searchBar.text];
+    
+}
+
+
+#pragma mark - UITableViewDataSource
+
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-#warning Incomplete method implementation.
-    // Return the number of rows in the section.
-    return 0;
+    
+    return _filterTempArray.count;
 }
 
-/*
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:<#@"reuseIdentifier"#> forIndexPath:indexPath];
+    static NSString *cellIdentifier = @"locationCell";
     
-    // Configure the cell...
+    ALLocationTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
+    
+    NSDictionary* location = [_filterTempArray objectAtIndex:indexPath.row];
+    
+    NSString* locatinName = [NSString new];
+
+    if ([[location valueForKey:kCountryCallingCode]length]>0) {
+        
+        locatinName = [NSString stringWithFormat:@"(%@) ",[location valueForKey:kCountryCallingCode]];
+
+    }
+    
+    cell.textLabel.text = [locatinName stringByAppendingString:[location valueForKey:kCountryName]];
     
     return cell;
 }
-*/
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+
+#pragma mark - UITableViewDelegate
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    
+    _isSectionLocation = YES;
+    
 }
-*/
 
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+
+#pragma mark - Initialization methods
+
+
+- (void)settingNavigationBar {
+    
+    UIImage *backButtonImage = [UIImage imageNamed:@"backBtn"];
+    
+    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    
+    [backButton setImage:backButtonImage forState:UIControlStateNormal];
+    
+    backButton.frame = CGRectMake(0.0, 0.0, backButtonImage.size.width, backButtonImage.size.height);
+    
+    [backButton addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
+    
+    UIBarButtonItem *backBarButtonItem = [[UIBarButtonItem alloc]initWithCustomView:backButton];
+    
+    self.navigationItem.leftBarButtonItem = backBarButtonItem;
+    
 }
-*/
 
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
+
+#pragma mark - Privet Methods
+
+-(NSMutableArray*) filterArray:(NSMutableArray*) array withFilter:(NSString*) filterString {
+    
+    NSMutableArray* filtrArray = [[NSMutableArray alloc]init];
+    
+    for (NSDictionary* location in array) {
+        
+        if ([filterString length] > 0 && [[location objectForKey:@"name"] rangeOfString:filterString options:NSCaseInsensitiveSearch].location== NSNotFound) {
+            
+            continue;
+        }
+        
+        [filtrArray addObject:location];
+        
+    }
+    
+    return filtrArray;
+    
 }
-*/
 
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
+
+-(void) filterArrayInBackground : (NSMutableArray*) array withFilter:(NSString*) filterString {
+    
+    [self.currenTOperation cancel];
+    
+    __weak ALLocationTableViewController* weakSelf = self;
+    
+    self. currenTOperation = [NSBlockOperation blockOperationWithBlock:^{
+        
+        NSMutableArray* filterTempArray = [weakSelf filterArray:array withFilter:filterString];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            weakSelf.filterTempArray = filterTempArray;
+            
+            [self.tableView reloadData];
+            
+            self.currenTOperation = nil;
+        });
+    }];
+    
+    [self.currenTOperation start];
+    
 }
-*/
 
-/*
-#pragma mark - Navigation
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+- (void)backAction {
+    
+    if (_isSectionLocation) {
+        
+        NSDictionary* location = [_filterTempArray objectAtIndex:[self.tableView indexPathForSelectedRow].row];
+        
+        NSString* selectLocation = [location valueForKey:kCountryName];
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"udateWeather" object:selectLocation];
+        
+        [[NSUserDefaults standardUserDefaults] setObject: selectLocation forKey:@"location"];
+        
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
+    }
+    
+    [self.navigationController popViewControllerAnimated:YES];
+    
 }
-*/
 
 @end

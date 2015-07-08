@@ -8,6 +8,19 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol LocationListViewDelegate <NSObject>
+
+- (void)didSelectCountry:(NSDictionary *)country;
+
+@end
+
 @interface ALLocationTableViewController : UITableViewController
+
+
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+
+@property (nonatomic, assign) id<LocationListViewDelegate>delegate;
+
+
 
 @end

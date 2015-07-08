@@ -7,7 +7,32 @@
 //
 
 #import <Foundation/Foundation.h>
+@class ALWeatherItem;
+
+
+@protocol ALWeatherModelsDelegate <NSObject>
+
+@optional
+
+
+-(void) getCurrentWeatherResponds:(ALWeatherItem*) weather;
+
+-(void) getImageWeatherByIDResponds:(NSData*) weatherData;
+
+-(void) errorRespondse:(NSString*) errorDescription;
+
+
+@end
+
+
 
 @interface ALWeatherModels : NSObject
+
+@property (nonatomic, weak) id < ALWeatherModelsDelegate > delegate;
+
+
+-(void)getCurrentWeatherInCity:(NSString*)city;
+
+-(void)getImageWeatherByID:(NSString*)ID;
 
 @end

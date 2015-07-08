@@ -7,7 +7,23 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ALWeatherItem.h"
+#import "AFNetworking.h"
+
 
 @interface ALServerManager : NSObject
+
++(ALServerManager*) sharedManager;
+
+
+-(void) getCurrentWeather: (NSString*) cityName
+                  OnSuccess: (void(^)(NSDictionary* respondsValue)) success
+                  onFailure: (void(^)(NSError* error, NSInteger statusCode)) failure;
+
+
+-(void) imageDownload:(NSString*) imageID
+            onSuccess: (void(^)(id imgData))succes
+            onFailure: (void(^)(NSError* error, NSInteger statusCode))failure;
+
 
 @end
