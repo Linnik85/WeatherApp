@@ -51,7 +51,7 @@
     
     self.requestOperationManager.responseSerializer = [AFJSONResponseSerializer serializer];
     
-    [self.requestOperationManager GET:[[NSString stringWithFormat:@"http://api.openweathermap.org/data/2.5/weather?q=%@",cityName] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
+    [self.requestOperationManager GET:[[NSString stringWithFormat:@"http://api.openweathermap.org/data/2.5/weather?q=%@&APPID=e4b4d924cf5439e9350106e3621348a2",cityName] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]
                            parameters:nil
                               success:^(AFHTTPRequestOperation *operation, id responseObject) {
                                   
